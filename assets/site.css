@@ -98,6 +98,7 @@ footer .l{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--margin)}
 #lb.on{display:flex}
 #lb .stage{flex:1;min-height:0;padding:var(--text);display:flex;align-items:center;justify-content:center}
 #lb .stage img{max-width:100%;max-height:100%;object-fit:contain}
+#lb button{background:none;border:0;font:inherit;padding:0}
 #lb .x{position:absolute;top:var(--margin);right:var(--margin);font-size:var(--text);line-height:var(--text-lh);color:var(--bg);text-decoration:none;cursor:pointer}
 #lb .arr{position:absolute;top:50%;font-size:var(--cap);line-height:var(--cap-lh);color:var(--bg);text-decoration:none;cursor:pointer;padding:0 var(--margin)}
 #lb .prev{left:0} #lb .next{right:0}
@@ -109,6 +110,7 @@ footer .l{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--margin)}
 .searchbar{display:flex;gap:var(--margin);align-items:flex-start;width:100%}
 .searchbar .box{flex:1;display:flex;justify-content:space-between;align-items:center}
 .searchbar input{border:0;background:transparent;font:inherit;font-size:var(--cap);line-height:var(--cap-lh);padding:0;flex:1;outline:none;color:var(--ink)}
+.searchbar .box:has(input:focus-visible){outline:2px solid var(--link);outline-offset:2px}
 .searchbar input::-webkit-search-cancel-button{display:none}
 .searchbar .box:focus-within{background:var(--hl)}
 .searchbar .close{font-size:var(--text);line-height:var(--text-lh);color:var(--ink);text-decoration:none}
@@ -118,6 +120,36 @@ footer .l{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--margin)}
 #pv .img{background:var(--hl);border:var(--thick) solid var(--line);padding:var(--half)}
 #pv .img img{display:block;width:100%}
 #pv .t{background:var(--hl);border:var(--thick) solid var(--line);border-top:0;padding:var(--half) var(--margin) var(--margin);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* keyboard focus: always visible, in the link colour (3:1 or more on every ground) */
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+#lb :focus-visible{outline-color:var(--bg)}
+.fig .img:focus-visible{outline-offset:-2px}
+.skip{position:absolute;left:var(--margin);top:-100px;z-index:60;background:var(--box);border:var(--thick) solid var(--line);padding:var(--half) var(--margin);font-size:var(--cap)}
+.skip:focus{top:var(--margin)}
+
+/* small layout helpers (the page allows no inline styles) */
+.b{font-weight:bold}
+.pt{padding-top:var(--text-lh)}
+.br.mt{margin-top:var(--text-lh)}
+.f1{flex:1}
+.nm{margin-top:-1px}
+.dbox{padding:0}
+.dbox.open{margin-bottom:-1px}
+.sw-year{max-width:calc((100% - 88px) / 3 + 24px)}
+.sw-material{max-width:calc((100% - 88px) / 12 * 7 + 48px)}
+.sw-place{max-width:calc((100% - 88px) / 4 + 16px)}
+.sw-proj{width:calc((100% - 88px) / 12 * 10 + 72px)}
+picture{display:contents}
+
+/* the plain version of each page written by the build, for search engines, link previews and browsers
+   without the script; with the script on, the drawn page replaces it */
+.pre{max-width:60em;font-size:var(--cap);line-height:var(--cap-lh);display:flex;flex-direction:column;gap:var(--margin)}
+.pre h1{font-size:var(--text);line-height:var(--text-lh);white-space:normal}
+.pre p,.pre ul{margin:0}
+.pre img{max-width:100%;height:auto}
+.pre figure{margin:0}
+@media (scripting:enabled){.pre{display:none}}
 
 @media (max-width:760px){
   .grid>*{width:100%!important}

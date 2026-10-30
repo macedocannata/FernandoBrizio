@@ -1,0 +1,14 @@
+# Security and cache headers, read by Cloudflare Pages (the planned host). GitHub Pages ignores this file.
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+/assets/*
+  Cache-Control: public, max-age=86400
+/img/*
+  Cache-Control: public, max-age=604800
+/wiki.json
+  Cache-Control: no-cache

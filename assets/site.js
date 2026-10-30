@@ -50,9 +50,9 @@ function inline(t, from){
 
 /* ---------- shared pieces ---------- */
 function nav(here){
-  const item = (id, label, href) => here === id ? `<div class="box">${label}</div>` : `<div class="box"><a href="${href}">${label}</a></div>`;
+  const item = (id, label, href) => here === id ? `<div class="box" aria-current="page">${label}</div>` : `<div class="box"><a href="${href}">${label}</a></div>`;
   return `<div class="nav stack w2">
-    <div class="box"><a class="home" href="${R}"${here === 'search' || here === 'about' ? ' style="font-weight:bold"' : ''}>Fernando Brízio</a></div>
+    <div class="box"><a class="home${here === 'search' || here === 'about' ? ' b' : ''}" href="${R}">Fernando Brízio</a></div>
     ${item('list', 'Project List', R + 'list')}
     ${item('about', 'About', R + 'about')}
     ${here === 'search' ? '' : `<div class="box search"><a href="${R}search">Search</a><img src="ui/search.svg" width="13.9041" height="13.9041" alt=""></div>`}
@@ -77,6 +77,15 @@ function shortCap(c){
 const fname = im => im.src || '';   // the original's file name (the build publishes no folders)
 const aspect = im => { const m = /^(\d+)x(\d+)$/.exec(im.info || ''); return m ? m[1] / m[2] : 1.33; };
 // the lead image (chosen in the backoffice) is what hovers and cards show; it does not change the page's image order
+// how wide an image shows, for the browser to pick the right file: grid columns on wide screens, full width on phones
+const colsVw = w => `(max-width:760px) 100vw, ${Math.round((+String(w).replace('w', '') || 12) / 12 * 100)}vw`;
+function pic(im, sizes, alt = '', lazy = true){
+  const dims = im.wh ? ` width="${im.wh[0]}" height="${im.wh[1]}"` : '';
+  const img = `<img${lazy ? ' loading="lazy"' : ''} src="${im.file}"${dims} alt="${esc(alt)}">`;
+  if (!im.v) return img;
+  const base = im.file.replace(/\.\w+$/, '');
+  return `<picture><source type="image/webp" srcset="${im.v.map(x => `${base}-${x}.webp ${x}w`).join(', ')}" sizes="${sizes}">${img}</picture>`;
+}
 const leadImg = p => p.images.find(i => i.id === p.lead && isStill(i)) || p.images.find(i => i.kind === 'image') || p.images.find(isStill);
 
 function figure(p, i, w){
@@ -85,7 +94,7 @@ function figure(p, i, w){
   // sound and video files play in place; stills (and video stills) open in the lightbox
   const media = isAudio(im) ? `<div class="box img"><audio controls preload="none" src="${im.file}"></audio></div>`
     : isVideoFile(im) ? `<div class="box img"><video controls preload="metadata" src="${im.file}"></video></div>`
-    : `<div class="box img" data-lb="${p.id}" data-i="${i}"><img loading="lazy" src="${im.file}" alt="${esc(plain(shortCap(im.caption)))}">${im.kind === 'video' ? '<span class="play">▶ video</span>' : ''}</div>`;
+    : `<div class="box img" data-lb="${p.id}" data-i="${i}" role="button" tabindex="0" aria-label="Open image ${i + 1} large">${pic(im, colsVw(w), plain(shortCap(im.caption)))}${im.kind === 'video' ? '<span class="play">▶ video</span>' : ''}</div>`;
   return `<div class="fig stack ${w}">
     ${media}
     <div class="box cap"><span class="n">[img ${i + 1}]</span> ${inline(shortCap(im.caption), p.id)}</div>
@@ -95,7 +104,7 @@ function figure(p, i, w){
 function card(p, w, big){
   const im = leadImg(p);
   if (!im) return `<div class="card ${big ? 'big ' : ''}${w}"><div class="txt">Text</div><div class="t"><a href="${R}${p.id}">${esc(p.title)}</a></div></div>`;
-  return `<div class="card ${big ? 'big ' : ''}${w}"><div class="img"><a href="${R}${p.id}"><img loading="lazy" src="${im.file}" alt=""></a></div><div class="t"><a href="${R}${p.id}">${esc(p.title)}</a></div></div>`;
+  return `<div class="card ${big ? 'big ' : ''}${w}"><div class="img"><a href="${R}${p.id}" tabindex="-1" aria-hidden="true">${pic(im, colsVw(w))}</a></div><div class="t"><a href="${R}${p.id}">${esc(p.title)}</a></div></div>`;
 }
 const cardW = p => { const im = leadImg(p); return im && aspect(im) > 1.4 ? 'w3' : 'w2'; };
 
@@ -104,7 +113,7 @@ function domainBlock(cur, open, w = 'w7'){
   const names = Object.keys(DOMAINS);
   const bar = `<div class="domainbar"><span>${names.map(n => cur && DOMAINS[n].includes(cur) ? `<b>${n}</b>` : n).join(' / ')}</span><a href="#" data-domains>${open ? '[–]' : '[+]'}</a></div>`;
   const cols = open ? `<div class="domains">${names.map(n => `<div class="box w3">${DOMAINS[n].map(id => `<a href="${R}${id}"${id === cur ? ' class="cur"' : ''}>${esc(P[id].title)}</a>`).join('')}</div>`).join('')}</div>` : '';
-  return `<div class="dom ${open ? 'w12' : w}" data-cur="${cur || ''}"><div class="box" style="padding:0;${open ? 'margin-bottom:-1px' : ''}">${bar}</div>${cols}</div>`;
+  return `<div class="dom ${open ? 'w12' : w}" data-cur="${cur || ''}"><div class="box dbox${open ? ' open' : ''}">${bar}</div>${cols}</div>`;
 }
 
 /* ---------- project page ---------- */
@@ -191,7 +200,7 @@ function projectPage(p){
   // meta: related projects, keywords, domains
   const related = [...new Set([...[...unmark(p.text).matchAll(/\[\[([^#|\]][^|\]]*)\|/g)].map(m => m[1]), ...p.linked_from])].filter(id => P[id] && id !== p.id);
   const tags = p.keywords.filter(k => K[k].type !== 'year');
-  out.push(`<div class="br"></div><div class="w7 stack" style="padding-top:var(--text-lh)">
+  out.push(`<div class="br"></div><div class="w7 stack pt">
     ${related.length ? `<div class="box cap">${related.map(id => pLink(id)).join(', ')}</div>` : ''}
     ${tags.length ? `<div class="box cap">${tags.map(k => kLink(k, p.id)).join(', ')}</div>` : ''}
   </div><div class="br"></div>`);
@@ -229,7 +238,7 @@ function keywordPage(k){
     out.push(`<div class="box text w4">${quote}</div>`, '<div class="br"></div>', spaceBox(2), ...ps.map(p => card(p, cardW(p), true)));
   }
   return `<div class="grid">${out.join('')}
-    <div class="br" style="margin-top:var(--text-lh)"></div>
+    <div class="br mt"></div>
     <div class="w7 stack"><div class="box cap">Related Projects: ${ps.map(p => pLink(p.id)).join(', ')}</div></div>
     <div class="br"></div>
     ${domainBlock(null, false)}
@@ -253,7 +262,7 @@ function listPage(){
     for (const id of D.featured) if (!placed.has(id)) out.push(card(P[id], cardW(P[id])));
   } else out.push(...D.featured.map(id => card(P[id], cardW(P[id]))));
   return `<div class="grid">${out.join('')}
-    <div class="br" style="margin-top:var(--text-lh)"></div>
+    <div class="br mt"></div>
     ${domainBlock(null, true)}
   </div>`;
 }
@@ -274,7 +283,7 @@ function pagePage(pg){
     else if (m[1] === 'space') out.push(spaceBox(m[2]));
     else if (m[1] === 'br') out.push('<div class="br"></div>');
     else if (m[1] === 'infobox' && pg.infobox) out.push(`<div class="box cap w${w || 2}">${pg.infobox.map(([k, v]) => `${esc(k)} ${inline(v)}`).join('; ')}</div>`);
-    else if (m[1] === 'chronology' && pg.chronology) out.push(`<div class="w${w || 12} trows">${pg.chronology.map(([y, t]) => `<div class="trow"><div class="box cap w1">${esc(y)}</div><div class="box cap" style="flex:1">${inline(t)}</div></div>`).join('')}</div>`);
+    else if (m[1] === 'chronology' && pg.chronology) out.push(`<div class="w${w || 12} trows">${pg.chronology.map(([y, t]) => `<div class="trow"><div class="box cap w1">${esc(y)}</div><div class="box cap f1">${inline(t)}</div></div>`).join('')}</div>`);
   }
   return `<div class="grid">${out.join('')}</div>`;
 }
@@ -282,13 +291,13 @@ function pagePage(pg){
 /* ---------- search ---------- */
 // years first, then the keyword types in the order set in the backoffice
 const SEARCH_ORDER = ['year', ...D.types.map(x => x.id)];
-const SEARCH_W = {year: 'max-width:calc((100% - 88px) / 3 + 24px)', material: 'max-width:calc((100% - 88px) / 12 * 7 + 48px)', place: 'max-width:calc((100% - 88px) / 4 + 16px)'};
+const SEARCH_W = {year: 'sw-year', material: 'sw-material', place: 'sw-place'};   // widths in site.css
 let searchQ = '';
 function searchPage(){
   document.getElementById('head').innerHTML = '';
   return `<div class="grid">
     <div class="w12 stack">${nav('search')}
-      <div class="searchbar" style="margin-top:-1px"><div class="box"><input id="q" type="search" autocomplete="off" aria-label="Search" value="${esc(searchQ)}"><img src="ui/enter.svg" width="12.999" height="14.9668" alt=""></div><a class="close" href="#" data-back>×</a></div>
+      <div class="searchbar nm"><div class="box"><input id="q" type="search" autocomplete="off" aria-label="Search" value="${esc(searchQ)}"><img src="ui/enter.svg" width="12.999" height="14.9668" alt=""></div><a class="close" href="#" data-back>×</a></div>
     </div>
     <div id="results" class="w12 grid"></div>
   </div>`;
@@ -302,16 +311,16 @@ function renderResults(){
     .filter(k => k.type === t && k.projects.length && (t === 'year' ? (!q || years.has(k.id)) : match(k.label)))
     .sort((a, b) => sortKey(a.label).localeCompare(sortKey(b.label)))]).filter(([, ks]) => ks.length);
   document.getElementById('results').innerHTML = groups.map(([t, ks]) =>
-      `<div class="box entries" style="${SEARCH_W[t] || ''}">${ks.map(k => `<span class="pe"><a href="${R}${k.id}">${esc(k.label)}</a> (${k.projects.length})</span>`).join('')}</div>`).join('')
-    + (ps.length ? `<div class="box entries w10" style="width:calc((100% - 88px) / 12 * 10 + 72px)">${ps.map(p => { const im = leadImg(p);
-        return `<span class="pe"><a href="${R}${p.id}" data-pv="${p.id}">${esc(p.title)}</a>${im ? `<img class="thumb" src="${im.file}" alt="">` : ''}</span>`; }).join('')}</div>
+      `<div class="box entries ${SEARCH_W[t] || ''}">${ks.map(k => `<span class="pe"><a href="${R}${k.id}">${esc(k.label)}</a> (${k.projects.length})</span>`).join('')}</div>`).join('')
+    + (ps.length ? `<div class="box entries w10 sw-proj">${ps.map(p => { const im = leadImg(p);
+        return `<span class="pe"><a href="${R}${p.id}" data-pv="${p.id}">${esc(p.title)}</a>${im ? pic({...im, file: im.file}, '64px').replace('<img', '<img class="thumb"') : ''}</span>`; }).join('')}</div>
       <div class="w2" id="pv"></div>` : '');
   preview(ps.find(p => leadImg(p)));
 }
 function preview(p){
   const el = document.getElementById('pv');
   if (!el || !p || !leadImg(p)) return;
-  el.innerHTML = `<div class="img"><img src="${leadImg(p).file}" alt=""></div><div class="t"><a href="${R}${p.id}">${esc(p.title)}</a></div>`;
+  el.innerHTML = `<div class="img">${pic(leadImg(p), '17vw', '', false)}</div><div class="t"><a href="${R}${p.id}">${esc(p.title)}</a></div>`;
 }
 document.addEventListener('mouseover', e => { const a = e.target.closest('#results a[data-pv]'); if (a) preview(P[a.dataset.pv]); });
 
@@ -325,7 +334,7 @@ function peekHtml(href){
     const body = esc(plain(p.text).slice(0, 420) || p.sheet.map(x => x.join(' ')).join('; '));
     // one grid column wide, like the narrowest box on the page
     const col = (document.getElementById('page').clientWidth - 11 * 8) / 12;
-    return `<div class="tx">${im ? `<img class="ph" src="${im.file}" alt="" style="width:${col}px">` : ''}<a href="${R}${p.id}">${esc(p.title)}</a><p>${body}</p></div>`;
+    return `<div class="tx">${im ? `<img class="ph" src="${im.file}" alt="" data-w="${col}">` : ''}<a href="${R}${p.id}">${esc(p.title)}</a><p>${body}</p></div>`;
   }
   if (kind === 'k' && K[id]) {
     const k = K[id];
@@ -342,6 +351,8 @@ document.addEventListener('mouseover', e => {
   clearTimeout(peekT);
   peekT = setTimeout(() => {
     peek.innerHTML = html;
+    const ph = peek.querySelector('.ph');
+    if (ph) ph.style.width = ph.dataset.w + 'px';   // set from the script, which the policy allows
     peek.style.display = 'block';
     const r = a.getBoundingClientRect();
     peek.style.left = Math.max(8, Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - peek.offsetWidth - 8)) + 'px';
@@ -354,14 +365,23 @@ document.addEventListener('mouseout', e => {
 
 /* ---------- lightbox ---------- */
 const lb = document.getElementById('lb');
-let lbList = [], lbI = 0;
-function openLb(list, i){ lbList = list; lbI = i; drawLb(); lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
-function closeLb(){ lb.classList.remove('on'); document.body.style.overflow = ''; }
-function stepLb(d){ lbI = (lbI + d + lbList.length) % lbList.length; drawLb(); }
+let lbList = [], lbI = 0, lbFrom = null;
+function openLb(list, i){
+  lbList = list; lbI = i; lbFrom = document.activeElement; drawLb();
+  lb.hidden = false; lb.classList.add('on'); document.body.style.overflow = 'hidden';
+  lb.querySelector('.x').focus();
+}
+function closeLb(){
+  if (!lb.classList.contains('on')) return;
+  lb.classList.remove('on'); lb.hidden = true; document.body.style.overflow = '';
+  if (lbFrom && document.contains(lbFrom)) lbFrom.focus();
+}
+function stepLb(d){ lbI = (lbI + d + lbList.length) % lbList.length; const k = document.activeElement?.dataset?.lbstep; drawLb(); (lb.querySelector(k ? `[data-lbstep="${k}"]` : '.x') || lb).focus(); }
 function drawLb(){
   const im = lbList[lbI];
-  lb.innerHTML = `<div class="stage"><img src="${im.file}" alt=""></div>
-    <a class="x" data-lbclose>×</a>${lbList.length > 1 ? '<a class="arr prev" data-lbstep="-1">←</a><a class="arr next" data-lbstep="1">→</a>' : ''}
+  const alt = (im.html === false ? im.short : im.short.replace(/ <span class="n">\(\d+\)<\/span>/g, '').replace(/<[^>]+>/g, '')).replace(/&amp;/g, '&');
+  lb.innerHTML = `<div class="stage">${im.im ? pic(im.im, '100vw', alt, false) : `<img src="${im.file}" alt="${esc(alt)}">`}</div>
+    <button type="button" class="x" data-lbclose aria-label="Close">×</button>${lbList.length > 1 ? '<button type="button" class="arr prev" data-lbstep="-1" aria-label="Previous image">←</button><button type="button" class="arr next" data-lbstep="1" aria-label="Next image">→</button>' : ''}
     <div class="bar"><div class="cap"><span class="lbl">[img ${im.n}]</span> ${im.html === false ? esc(im.short) : im.short}</div><div class="full">${im.html === false ? esc(im.caption) : im.caption}${im.src ? ` [${esc(im.src)}]` : ''}</div></div>`;
 }
 lb.addEventListener('click', e => {
@@ -374,6 +394,16 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeLb();
   if (e.key === 'ArrowLeft') stepLb(-1);
   if (e.key === 'ArrowRight') stepLb(1);
+  if (e.key === 'Tab') {   // keep the keyboard inside the viewer while it is open
+    const f = [...lb.querySelectorAll('button')], i = f.indexOf(document.activeElement);
+    e.preventDefault();
+    f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+  }
+});
+// images open with Enter or Space too
+document.addEventListener('keydown', e => {
+  const el = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('.fig [data-lb]');
+  if (el) { e.preventDefault(); el.click(); }
 });
 
 /* ---------- page clicks ---------- */
@@ -399,6 +429,7 @@ document.addEventListener('click', e => {
   if (fn) { e.preventDefault(); const el = document.getElementById('fn' + fn.dataset.fn); if (el) el.scrollIntoView({block: 'center', behavior: 'smooth'}); return; }
   if (t.closest('[data-back]')) { e.preventDefault(); searchQ = ''; history.back(); }
   if (t.closest('#top')) { e.preventDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); }
+  if (t.closest('.skip')) { e.preventDefault(); const h = document.querySelector('#head h1, #page h1, #q'); if (h) { h.tabIndex = -1; h.focus(); } }
 });
 window.addEventListener('scroll', () => document.getElementById('top').classList.toggle('on', window.scrollY > 300), {passive: true});
 
@@ -423,6 +454,7 @@ function randomArticle(){
   go(R + p.id, true);
 }
 
+let routed = false;
 function route(){
   const id = slugOf();
   if (!id || id === 'wiki.html' || id === 'random') return randomArticle();
@@ -444,7 +476,11 @@ function route(){
   else { if (id !== 'list') history.replaceState(null, '', R + 'list'); c.innerHTML = listPage(); }
   c.insertAdjacentHTML('beforeend', footer());
   document.title = title + ' — Fernando Brízio';
+  const canon = document.querySelector('link[rel=canonical]');
+  if (canon) canon.href = new URL(location.pathname.replace(/\/?$/, '/'), canon.href).href;
   window.scrollTo(0, 0);
+  if (routed && id !== 'search') { const h = document.querySelector('#head h1'); if (h) { h.tabIndex = -1; h.focus({preventScroll: true}); } }
+  routed = true;
 }
 
 // older addresses (wiki.html#p/float, #k/stain, #page/contact, #about…) move to the new ones
