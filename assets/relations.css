@@ -1,0 +1,58 @@
+/* The relations page: projects × keywords, in the site's look (grey ground, boxes with a black line). */
+:root{
+  --bg:#dbdbdb; --box:#e9e9e9; --line:#000; --link:#0032ff; --hl:#b3c2ff; --ink:#000; --mute:#666;
+  --m:8px; --cell:15px; --name:260px; --head:150px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;padding:var(--m);background:var(--bg);color:var(--ink);font:15px/18px "Times New Roman",Times,serif;display:flex;flex-direction:column;gap:var(--m)}
+a{color:var(--link)}
+.box{background:var(--box);border:1px solid var(--line);padding:4px var(--m)}
+
+#bar{display:flex;flex-wrap:wrap;gap:var(--m);align-items:stretch}
+.title{font-size:18px;line-height:22px;white-space:nowrap}
+.controls{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.controls select,.controls input[type=search]{font:inherit;background:#fff;border:1px solid var(--line);border-radius:0;padding:1px 4px}
+.controls input[type=search]{width:150px}
+.types{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;flex:1 1 360px}
+.types button{font:inherit;background:none;border:0;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:var(--ink)}
+.types button i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.types button.off{color:var(--mute);text-decoration:line-through}
+.types button.off i{opacity:.25}
+.info{flex:1 1 100%;min-height:28px}
+.info b{font-weight:bold}
+.info .x{margin-left:10px;cursor:pointer;color:var(--link);text-decoration:underline;background:none;border:0;font:inherit;padding:0}
+
+#wrap{flex:1;min-height:0;overflow:auto;background:var(--box);border:1px solid var(--line)}
+table{border-collapse:separate;border-spacing:0}
+td,th{padding:0;font-weight:normal}
+
+/* keyword labels, read bottom to top */
+thead th{position:sticky;top:0;z-index:2;background:var(--box);height:var(--head);width:var(--cell);min-width:var(--cell);max-width:var(--cell);vertical-align:bottom;border-bottom:1px solid var(--line);cursor:pointer}
+thead th span{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:calc(var(--head) - 8px);display:block;margin:0 auto 4px;font-size:12px;line-height:var(--cell)}
+thead th.grp{border-left:1px solid var(--line)}
+thead th.corner{left:0;z-index:4;width:var(--name);min-width:var(--name);max-width:var(--name);text-align:left;vertical-align:bottom;padding:4px var(--m);border-right:1px solid var(--line);cursor:default;font-size:12px;color:var(--mute)}
+thead tr.groups th{height:auto;top:0;font-size:12px;text-align:left;white-space:nowrap;overflow:hidden;max-width:none;padding:2px 4px;border-left:1px solid var(--line);cursor:default}
+thead tr.groups th.corner{border-bottom:0}
+thead tr.groups th span{writing-mode:horizontal-tb;transform:none;display:inline;margin:0;font-size:inherit;line-height:inherit}
+thead tr.groups + tr th{top:var(--gh, 21px)}
+
+/* project names */
+tbody th{position:sticky;left:0;z-index:1;background:var(--box);width:var(--name);min-width:var(--name);max-width:var(--name);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 var(--m);height:var(--cell);font-size:13px;line-height:var(--cell);border-right:1px solid var(--line);cursor:pointer}
+tbody th small{color:var(--mute);font-size:11px}
+tbody td{width:var(--cell);height:var(--cell);text-align:center;vertical-align:middle;border-bottom:1px solid rgba(0,0,0,.06);border-right:1px solid rgba(0,0,0,.04)}
+tbody td.grp{border-left:1px solid rgba(0,0,0,.35)}
+td i{display:block;width:9px;height:9px;border-radius:50%;margin:auto}
+
+/* hover and focus */
+tbody tr:hover th,tbody tr:hover td,.hc{background:var(--hl)}
+thead th.hc{background:var(--hl)}
+tr.me th{font-weight:bold}
+tbody th:hover,thead th:not(.corner):hover span{color:var(--link);text-decoration:underline}
+.dim{opacity:.25}
+.empty{padding:20px;color:var(--mute)}
+
+@media (max-width:640px){
+  :root{--name:150px;--head:120px}
+  body{padding:var(--m) var(--m)}
+}

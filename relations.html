@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relations — Fernando Brízio</title>
+<base href="/FernandoBrizio/">
+<link rel="stylesheet" href="assets/relations.css">
+</head>
+<body>
+<header id="bar">
+  <div class="box title"><a href="./">Fernando Brízio</a> · Relations</div>
+  <div class="box controls">
+    <label>Projects <select id="rows">
+      <option value="similar">Similar together</option>
+      <option value="year">By year</option>
+      <option value="title">A–Z</option>
+      <option value="count">Most keywords</option>
+    </select></label>
+    <label>Keywords <select id="cols">
+      <option value="type">By type</option>
+      <option value="clustered">Follow the projects</option>
+      <option value="count">Most used</option>
+    </select></label>
+    <label><input type="checkbox" id="once"> Keywords used once</label>
+    <input type="search" id="q" placeholder="Find a project">
+  </div>
+  <div class="box types" id="types"></div>
+  <div class="box info" id="info">Hover a dot. Click a project or a keyword to see only its relations.</div>
+</header>
+<div id="wrap"><table id="m"></table></div>
+<script type="module" src="assets/relations.js"></script>
+</body>
+</html>
